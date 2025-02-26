@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb th, .tb td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Сличительная ведомость ТМЦ по зонам</h1>
+<table class="tb">
+  <tr>
+    <th style="width:110px">Штрихкод</th>
+    <th style="width:85px">Код товара</th>
+    <th style="width:165px">Наименование</th>
+    <th style="width:50px">Факт</th>
+    <th style="width:50px">Учет</th>
+    <th style="width:50px">Цена</th>
+    <th style="width:50px">(-/+)</th>
+    <th style="width:60px">-/+[$]</th>
+    <th style="width:60px">-/+ abs[$]</th>
+  </tr>
+  {% for product in products %}
+  <tr>
+    <th>{{ product.barcode }}</th>
+    <th>{{ product.vendor_code }}</th>
+    <th>{{ product.title }}</th>
+    <th>{{ product.fact }}</th>
+    <th>{{ product.uchet }}</th>
+    <th>{{ product.price }}</th>
+    <th>{{ product.pm }} </th>
+    <th>{{ product.pm_price }} </th>
+    <th>{{ product.pm_price_abs }} </th>
+  </tr>
+  <tr>
+    <th colspan="3" align="right">
+      {% for zone in product.zones %}
+      {{ zone }} <br>
+      {% endfor %}
+    </th>
+    <th colspan="6" align="left">
+      {% for value in product.zones.values %}
+      {{ value }} <br>
+      {% endfor %}
+    </th>
+  </tr>
+  {% endfor %}
+  <tr>
+    <th colspan="3">Итого:</th>
+    <th>{{ alls_fact_sum }}</th>
+    <th>{{ alls_uchet_sum }}</th>
+    <th> </th>
+    <th>{{ alls_pm_sum }}</th>
+    <th>{{ alls_pm_price_sum }}</th>
+    <th>{{ alls_pm_price_abs_sum }}</th>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+  "title": "Стандартный",
+  "is_active": true,
+  "equipment": {
+    "is_enable": true,
+    "detail": {
+      "visibility": true,
+      "exterior": true,
+      "protection": true,
+      "multimedia": true,
+      "salon": true,
+      "comfort": true,
+      "safety": true,
+      "other": true
+    }
+  },
+  "completeness": {
+    "is_enable": true
+  },
+  "documents": {
+    "is_enable": true,
+    "detail": {
+      "sts": true,
+      "pts": true,
+      "additional": true
+    }
+  },
+  "tires": {
+    "is_enable": true,
+    "detail": {
+      "additional": true
+    }
+  },
+  "photos": {
+    "is_enable": true,
+    "detail": {
+      "front": true,
+      "front_left_three_quarters": true,
+      "front_left_wheel": true,
+      "front_right_wheel": true,
+      "front_right_three_quarters": true,
+      "front_seats": true,
+      "back": true,
+      "back_left_wheel": true,
+      "back_left_three_quarters": true,
+      "back_right_three_quarters": true,
+      "back_right_wheel": true,
+      "back_seats": true,
+      "left_side": true,
+      "right_side": true,
+      "open_trunk": true,
+      "steering": true,
+      "torpedo": true,
+      "back_seats_view": true,
+      "under_hood": true,
+      "additional": true
+    }
+  },
+  "paintwork": {
+    "is_enable": true
+  },
+  "damage": {
+    "is_enable": true
+  },
+  "technical": {
+    "is_enable": true
+  },
+  "lift": {
+    "is_enable": true
+  },
+  "video": {
+    "is_enable": true
+  },
+  "place": {
+    "is_enable": true
+  },
+  "client": {
+    "is_enable": true
+  },
+  "signatures": {
+    "is_enable": true
+  }
+}

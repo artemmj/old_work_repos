@@ -1,0 +1,10 @@
+from .add_product_position import AddProductPositionService  # noqa: WPS130
+from .batch_color_changing import BatchColorChangingService  # noqa: WPS130
+from .batch_discrepancy_report import DocumentBatchDiscrepancyReportsService  # noqa: WPS130
+from .batch_reset_color import BatchResetColorService  # noqa: WPS130
+from .batch_status_inverting import BatchStatusInvertingService  # noqa: WPS130
+from .check_auditor_discrepancy import CheckAuditorDiscrepancyService  # noqa: WPS130
+from .delete_product_position import DeleteProductPositionService  # noqa: WPS130
+from .document_discrepancy_report import DocumentDiscrepancyReportService  # noqa: WPS130
+from .replace_specification import ReplaceDocumentSpecificationService  # noqa: WPS130
+from .set_controller_service import SetDocumentControllerService  # noqa: WPS130

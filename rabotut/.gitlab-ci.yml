@@ -1,0 +1,14 @@
+image: your-registry/templates/image/python:3-11-no-pip
+variables:
+  PROJECT: rabotut
+  PIP_CACHE: "true"
+  TEST_MIGRATION: "true"
+  TEST_PYTEST: "true"
+  TEST_MYPY: "false"
+  TEST_FLAKE: "true"
+  TEST_COVERAGE: "false"
+
+include:
+  - project: $CI_PROJECT_ROOT_NAMESPACE/infrastructure/pipelines
+    ref: main
+    file: /backend/common.yaml

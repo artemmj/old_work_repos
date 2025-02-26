@@ -1,0 +1,8 @@
+from .bank_detail import BankDetailSerializer
+from .document import DocumentAllArketaSerializer
+from .email import EmailArketaReadSerializer, EmailArketaWriteSerializer
+from .inn import InnArketaReadSerializer, InnArketaWriteSerializer
+from .registration import RegistrationArketaReadSerializer, RegistrationArketaWriteSerializer
+from .selfie import SelfieArketaReadSerializer, SelfieArketaWriteSerializer
+from .snils import SnilsArketaReadSerializer, SnilsArketaWriteSerializer
+from .spread import SpreadArketaReadSerializer, SpreadArketaWriteSerializer

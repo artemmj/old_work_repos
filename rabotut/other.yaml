@@ -1,0 +1,71 @@
+version: "3.4"
+
+x-common-variables: &common-variables
+  POSTGRES_HOST_AUTH_METHOD: 'trust'
+  DJANGO_SETTINGS_MODULE: settings
+  CORS_ORIGIN_ALLOW_ALL: 'TRUE'
+  PYTHONUNBUFFERED: 0
+  BUILD: ${TAG}
+
+x-logging-settings: &logging
+  driver: loki
+  options:
+    loki-url: ${LOKI_URL}/loki/api/v1/push
+    loki-retries: "5"
+    loki-batch-size: "400"
+    loki-external-labels: stage=${CI_COMMIT_REF_SLUG},application=${CI_PROJECT_NAME}
+
+services:
+  db:
+    image: your-registry/templates/image/postgres:16-alpine
+    container_name: ${CI_PROJECT_NAME}_db
+    environment: *common-variables
+    restart: always
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+    logging: { <<: *logging }
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres"],interval: 15s,timeout: 15s,retries: 5}
+
+  redis:
+    image: your-registry/templates/image/redis:7-alpine
+    container_name: ${CI_PROJECT_NAME}_redis
+    environment: *common-variables
+    restart: always
+    volumes:
+      - ./volumes/redis/data:/data
+    logging: { <<: *logging }
+    healthcheck: {test: ["CMD", "redis-cli", "ping"],interval: 15s,timeout: 15s,retries: 5}
+
+  app: &app
+    image: ${CI_REGISTRY_IMAGE}:${TAG}
+    container_name: ${CI_PROJECT_NAME}_app
+    environment: *common-variables
+    env_file: docker/.dockerenv
+    restart: always
+    volumes:
+      - ./volumes/media:/media
+      - ./volumes/static:/static
+    depends_on: [db,redis]
+    command: gunicorn --bind 0.0.0.0:8000 --timeout 600 --log-level debug --reload --workers 4 apps.wsgi:application
+    logging: { <<: *logging }
+    healthcheck: {test: ["CMD-SHELL", "wget -O /dev/null http://localhost:8000/api/v1/health_check || exit 1"],interval: 15s,timeout: 15s,retries: 5}
+
+  celery:
+    <<: *app
+    container_name: ${CI_PROJECT_NAME}_celery
+    depends_on: [db,redis]
+    command: celery -A apps worker -l info -B -c ${WORKERS}
+    healthcheck: {test: ["CMD-SHELL", "celery inspect ping -A apps"],interval: 15s,timeout: 15s,retries: 5}
+
+  nginx:
+    image: your-registry/templates/image/nginx:1-25-alpine
+    container_name: ${CI_PROJECT_NAME}_nginx
+    restart: always
+    volumes:
+      - ./docker/nginx/:/etc/nginx/conf.d
+      - ./volumes/static:/var/www/static
+      - ./volumes/media:/var/www/media
+    depends_on: [app]
+    ports: ["127.0.0.1:8000:80"]
+    logging: { <<: *logging }
+    healthcheck: {test: ["CMD-SHELL", "wget -O /dev/null http://localhost/basic_status || exit 1"],interval: 15s,timeout: 15s,retries: 5}

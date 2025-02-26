@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb {
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb th, .tb td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+.pbreak {
+  -pdf-keep-with-next: true;
+}
+</style>
+</head>
+
+<body>
+<h1 align="center">Совпадение DM по зонам</h1>
+{% for zone_pair, products in zones_pairs.items %}
+<div class="pbreak">
+  <table class="tb">
+    <thead>
+      <th colspan="2" style="width:100px;background-color:#DCDCDC;">Совпадение в зонах</th>
+      <th colspan="5" style="width:100px;text-align:left;">{{ zone_pair }}</th>
+    </thead>
+    <thead>
+      <th style="width:30px;background-color:#DCDCDC;">п/п</th>
+      <th colspan="3" style="width:210px;background-color:#DCDCDC;">наименование</th>
+      <th style="width:120px;background-color:#DCDCDC;">DM</th>
+      <th style="width:120px;background-color:#DCDCDC;">код товара</th>
+      <th style="width:80px;background-color:#DCDCDC;">количество</th>
+    </thead>
+    {% for product in products %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td colspan="3">{{ product.title }}</td>
+      <td style="text-align:center;">{{ product.dm }}</td>
+      <td>{{ product.code }}</td>
+      <td>{{ product.amount }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+<br>
+{% endfor %}
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+@page {
+    /* size: letter landscape; */
+    margin: 2cm;
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">ОТЧЕТ ПО ОШИБКАМ</h1>
+<h3>Дата: {{ date }}</h3>
+{% for storage, zones_list in storages.items %}
+    <h3>{{ storage }}</h3>
+    <table class="tb">
+    <tr>
+        <th style="width: 50px">Номер зоны</th>
+        <th style="width: 100px">Количество Скан</th>
+        <th style="width: 100px">Количество УК</th>
+        <th style="width: 150px">Номер зоны для проверки</th>
+    </tr>
+    {% for zone in zones_list %}
+    <tr>
+        <td>{{ zone.zone }}</td>
+        <td>{{ zone.scan }}</td>
+        <td>{{ zone.uk }}</td>
+        <td>{{ zone.zone }} ____________________</td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endfor %}
+</body>
+</html>

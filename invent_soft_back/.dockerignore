@@ -1,0 +1,6 @@
+*
+!venv
+!project
+!venv
+!.add
+**/__pycache__

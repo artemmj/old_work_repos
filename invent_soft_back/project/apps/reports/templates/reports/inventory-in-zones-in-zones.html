@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb th, .tb td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+.pbreak {
+  -pdf-keep-with-next: true;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Отчет данных инвентаризации по зонам</h1>
+
+{% for zone, products in zones.items %}
+<div class="pbreak">
+  <table class="tb">
+    <thead>
+      <th colspan="5" style="text-align:left;background-color: #DCDCDC;">Зона: {{ zone }}</th>
+    </thead>
+    <thead>
+      <th style="width:150px;">Штрих-код </th>
+      <th style="width:150px;">Артикул </th>
+      <th style="width:250px;">Наименование </th>
+      <th style="width:70px;">Кол-во </th>
+      <th style="width:70px;">Внешнее контр. кол. </th>
+    </thead>
+    {% for product in products.products %}
+    <tr>
+        <td>{{ product.barcode }} </td>
+        <td>{{ product.vendor_code }} </td>
+        <td>{{ product.title }} </td>
+        <td>{{ product.amount }} </td>
+        <td> </td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="3" style="text-align:right;">Всего: </td>
+      <td>{{ products.total }}</td>
+      <td> </td>
+    </tr>
+  </table>
+</div>
+<br>
+{% endfor %}
+
+</body>
+</html>

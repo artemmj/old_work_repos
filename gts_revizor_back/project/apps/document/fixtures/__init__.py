@@ -1,0 +1,6 @@
+from .documents import documents_factory, document_random_color
+from .documents_inv_3 import documents_inv_three_report
+from .document_add_product_position import document_for_add_product_position
+from .document_delete_product_position import document_for_delete_product_position
+from .document_discrepancy_report import document_discrepancy_report
+from .document_set_controller_service import document_set_controller_service

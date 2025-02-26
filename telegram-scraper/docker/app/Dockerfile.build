@@ -1,0 +1,38 @@
+FROM python:3.8.10-slim-buster
+
+ENV TZ=Europe/Moscow
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    openssh-server \
+    git \
+    build-essential \
+    ca-certificates \
+    make \
+    libuv1 \
+    libffi-dev \
+    postgresql \
+    postgresql-contrib \
+    libncursesw5-dev \
+    libreadline-dev \
+    nano \
+    g++ \
+    gcc \
+    wget \
+    gdal-bin \
+    libgdal-dev \
+    libxslt-dev
+
+RUN pip install --no-cache-dir --upgrade pip setuptools==49.2.1 && pip install pipenv==2021.5.29
+COPY project/Pipfile* /
+
+RUN pipenv install --deploy --system --ignore-pipfile
+
+ENV TZ=Europe/Moscow
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+WORKDIR /app
+COPY project /app
+
+# fix broken python shell pasting
+RUN echo "set enable-bracketed-paste off" >> ~/.inputrc
+

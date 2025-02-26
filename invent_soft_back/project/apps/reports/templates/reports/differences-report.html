@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb th, .tb td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Отчет по расхождениям</h1>
+<table class="tb">
+<tr>
+    <th style="width:30px;">№</th>
+    <th style="width:160px;">Артикул</th>
+    <th style="width:250px;">Товар</th>
+    <th style="width:150px;">Штрихкод</th>
+    <th style="width:100px;">Излишек количество</th>
+    <th style="width:100px;">Излишек сумма</th>
+    <th style="width:100px;">Недостача количество</th>
+    <th style="width:100px;">Недостача сумма</th>
+    <th style="width:100px;">Остаток по бух учету</th>
+</tr>
+{% for product in products %}
+<tr>
+    <th>{{ forloop.counter }}</th>
+    <th>{{ product.vendor_code }}</th>
+    <th>{{ product.title }}</th>
+    <th>{{ product.barcode }}</th>
+    <th>{{ product.surplus_count }}</th>
+    <th>{{ product.surplus_sum }}</th>
+    <th>{{ product.shortage_count }}</th>
+    <th>{{ product.shortage_sum }}</th>
+    <th> </th>
+</tr>
+{% endfor %}
+<tr>
+    <th colspan="4">Итого:</th>
+    <th>{{ alls_surplus_count }}</th>
+    <th>{{ alls_surplus_sum }}</th>
+    <th>{{ alls_shortage_count }}</th>
+    <th>{{ alls_shortage_sum }}</th>
+    <th> </th>
+</tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,129 @@
+variables:
+  DEBUG: "True"
+  TAG: '$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA'
+  DEPLOY_BACKUP_TO_S3: "true"
+
+workflow:
+  rules:
+    - if: $CASE == "deploy_test_environment"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/TESTING_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME == "master" 
+      variables:
+        DEBUG: "False"
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/PROD_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME == "preprod"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/K_PREPROD_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME == "dev"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/DEV_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME
+
+stages:
+  - requirements
+  - test
+  - build
+  - deploy
+
+requirements:
+  stage: requirements
+  image: docker:dind
+  services: ['docker:dind']
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  tags: [services]
+  rules:
+    - if: $CI_SKIP_TEST == "true"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $TEST_DOCKERENV != null
+      changes:
+        - project/Pipfile.lock
+        - docker/app/Dockerfile.cache
+        - .gitlab-ci.yml
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-cache || true
+    - docker build -f docker/app/Dockerfile.cache --cache-from $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-cache --tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-cache .
+    - docker push $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-cache
+
+test:
+  stage: test
+  image: $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-cache
+  rules:
+    - if: $CI_SKIP_TEST == "true"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $SHELL_TEST == "true"
+      when: never
+    - if: $SHELL_TEST != "true" && $TEST_DOCKERENV != null
+      changes:
+        - project/**/*
+        - docker/**/*
+  services: 
+    - name: your-registry/templates/image/postgres:postgis-12-3-alpine
+      alias: db
+    - name: your-registry/templates/image/redis:5-alpine
+      alias: redis
+  variables:
+    POSTGRES_HOST_AUTH_METHOD: trust
+    POSTGRES_HOST: db
+    POSTGRES_PORT: 5432
+    GOOGLE_APPLICATION_CREDENTIALS: /config/firebase.json
+  tags: [services]
+  script:
+    - mkdir /config
+    - cat $FIREBASE_JSON > /config/firebase.json
+    - cat $TEST_DOCKERENV > .env && export $(cat .env | xargs) && cat $TEST > project/.test.sh
+    - (cd project; bash .test.sh; flake8; ./manage.py migrate)
+
+build:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $DOCKERENV != null
+  services: ['docker:dind']
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  tags: [services]
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG || true
+    - docker build -f docker/app/Dockerfile.build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$TAG .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE:$TAG
+
+deploy:
+  stage: deploy
+  tags: [services]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $DOCKERENV != null
+  before_script:
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - apk update && apk add openssh-client gettext
+    - eval $(ssh-agent -s)
+    - cat $SSH_CONFIG > ~/.ssh/config && cat $SSH_PRIVATE_KEY | tr -d '\r' | ssh-add -
+    - cat $DOCKERENV > .dockerenv && export $(grep -v '^#' .dockerenv | grep -e MEDIA_ROOT -e WORKERS -e SERVER | xargs)
+    - if [[ $(ssh work@$SERVER -o StrictHostKeyChecking=no "systemctl list-unit-files --state=enabled | egrep -c 'nginx|zabbix-agent2'") != "2"  ]]; then exit 1; fi
+  script:
+    - envsubst < .docker-compose.yml.template > docker-compose.yml
+    - ssh -l work $SERVER "mkdir -p $CI_PROJECT_NAME/docker || true"
+    - scp -r docker/* work@$SERVER:~/$CI_PROJECT_NAME/docker/
+    - cat $DOCKERENV | ssh -l work $SERVER -T "cat > $CI_PROJECT_NAME/docker/.dockerenv"
+    - cat $FIREBASE_JSON | ssh -l work $SERVER -T "cat > $CI_PROJECT_NAME/docker/config/firebase.json"
+    - cat docker-compose.yml | ssh -l work $SERVER -T "cat > ~/$CI_PROJECT_NAME/docker-compose.yml"
+    - ssh -l work $SERVER "
+        docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+        cd ~/$CI_PROJECT_NAME &&
+        docker-compose pull &&
+        docker-compose down &&
+        docker-compose up -d &&
+        docker-compose exec -T app ./manage.py migrate &&
+        yes | docker system prune -a"

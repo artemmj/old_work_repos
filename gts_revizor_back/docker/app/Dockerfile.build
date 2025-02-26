@@ -1,0 +1,8 @@
+FROM your-registry/templates/image/python:3-8-no-pip
+
+COPY venv /opt/venv
+COPY project /app
+WORKDIR /app
+
+# fix broken python shell pasting
+RUN echo "set enable-bracketed-paste off" >> ~/.inputrc

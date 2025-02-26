@@ -1,0 +1,9 @@
+FROM your-registry/templates/image/python:3-7-alpine
+
+COPY --chown=python:python venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /app
+COPY --chown=python:python project /app
+
+RUN pip freeze | wc -l

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+.tbbot { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tbbot th, .tbbot td {
+    border-bottom: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="left">{{ date_title }}</h1>
+<h1 align="center">Не просчитанные зоны в ходе инвентаризации</h1>
+{% for storage_name, zone_data in zones.items %}
+    <table class="tb">
+    <tr>
+        <th align="left">Наименование склада: {{ storage_name }}</th>
+        <th align="right">Количество: {{ zone_data.count }}</th>
+    </tr>
+    </table>
+    
+    <table class="tbbot">
+    <tr>
+    {% for zone in zone_data.zones %}
+        <th>{{ zone }}</th>
+        <th style="border: inherit;"></th>
+        {% if forloop.counter|divisibleby:"4" %}
+        </tr>
+        {% endif %}
+    {% endfor %}
+    </tr>
+    </table>
+    <br>
+{% endfor %}
+</body>
+</html>

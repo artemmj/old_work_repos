@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+    word-wrap: break-word;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Расхождения с учетным количеством.</h1>
+<table class="tb">
+    <tr>
+        <th style="width:50px">№ зоны</th>
+        <th style="width:140px">Штрихкод</th>
+        <th style="width:140px">Товар</th>
+        <th style="width:100px">Артикул</th>
+        <th style="width:80px">Номер зоны</th>
+        <th style="width:80px">Факт (кол-во)</th>
+        <th style="width:90px">Учет (кол-во)</th>
+        <th style="width:80px">Цена</th>
+        <th style="width:90px">Разница (кол-во)</th>
+        <th style="width:100px">Разница (цена)</th>
+    </tr>
+    {% for product in products %}
+    <tr>
+        <th>{{ forloop.counter }}</th>
+        <th>{{ product.barcode }}</th>
+        <th>{{ product.title }}</th>
+        <th>{{ product.vendor_code }}</th>
+        <th>{{ product.zone }} </th>
+        <th>{{ product.fact }} </th>
+        <th>{{ product.uchet }} </th>
+        <th>{{ product.price }} </th>
+        <th>{{ product.diff_amount }} </th>
+        <th>{{ product.diff_price }} </th>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th colspan="5" align="right">Итого:</th>
+        <th>{{ alls_fact }} </th>
+        <th>{{ alls_uchet }} </th>
+        <th>-</th>
+        <th>{{ alls_diff_amount }} </th>
+        <th>{{ alls_price_amount }} </th>
+    </tr>
+</table>
+</body>
+</html>

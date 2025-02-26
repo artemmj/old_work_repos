@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb th, .tb td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Общее количество ТМЦ по зонам</h1>
+<table class="tb">
+<tr>
+    <th style="width:40px;">№ п/п</th>
+    <th style="width:250px;">Номер зоны</th>
+    <th style="width:150px;">Общее количество ТМЦ</th>
+</tr>
+{% for zone in zones %}
+<tr>
+    <th>{{ forloop.counter }}</th>
+    <th>{{ zone.title }}</th>
+    <th>{{ zone.tmc_count }}</th>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>

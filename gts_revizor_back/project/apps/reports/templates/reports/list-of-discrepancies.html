@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+@page {
+    size: letter landscape;
+    margin: 2cm;
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Ведомость расхождений "{{ project }}".</h1>
+<table class="tb">
+    <tr>
+        <th rowspan="2" style="width:50px">№ п\п</th>
+        <th rowspan="2" style="width:140px">Штрихкод</th>
+        <th rowspan="2" style="width:140px">Код номенклатуры</th>
+        <th rowspan="2" style="width:60px">Размер</th>
+        <th rowspan="2" style="width:150px">Наименование</th>
+        <th rowspan="2" style="width:70px">Цена</th>
+        <th rowspan="2" style="width:80px">Кол-во на основном складе ед.</th>
+        <th rowspan="2" style="width:80px">Кол-во на складе расхожде ния ед.</th>
+        <th rowspan="2" style="width:80px">Итого учетный остаток в  магазине</th>
+        <th rowspan="2" style="width:80px">Фактичес кое наличие, ед.</th>
+        <th colspan="2" style="width:180px">Расхождения</th>
+        <th rowspan="2" style="width:90px">Зоны просчета</th>
+    </tr>
+    <tr>
+        <th style="width:90px">Ед.</th>
+        <th style="width:90px">Руб.</th>
+    </tr>
+    {% for product in products %}
+    <tr>
+        <th>{{ forloop.counter }} </th>
+        <th>{{ product.barcode }} </th>
+        <th>{{ product.vendor_code }} </th>
+        <th>{{ product.size }} </th>
+        <th>{{ product.title }} </th>
+        <th>{{ product.price }} </th>
+        <th>{{ product.remainder }} </th>
+        <th>{{ product.remainder_2 }} </th>
+        <th>{{ product.total_remainder }} </th>
+        <th>{{ product.fact }} </th>
+        <th>{{ product.diff_count }} </th>
+        <th>{{ product.diff_price }} </th>
+        <th>{{ product.zone }} </th>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th colspan="5" align="right">Итого:</th>
+        <th> </th>
+        <th> </th>
+        <th> </th>
+        <th> </th>
+        <th>{{ alls_fact_count }} </th>
+        <th>{{ alls_diff_count }} </th>
+        <th>{{ alls_diff_price }} </th>
+        <th> </th>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,2 @@
+X_REQUEST_HEADER_KEY = 'X-Request-ID'
+REQUEST_HEADER_KEY = 'request_id'

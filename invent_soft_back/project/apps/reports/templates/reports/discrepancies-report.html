@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+@page {
+    size: letter landscape;
+    margin: 2cm;
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Ведомость расхождений</h1>
+<table class="tb">
+    <tr>
+        <th rowspan="2" style="width:40px">№</th>
+        <th rowspan="2" style="width:80px">Код товара</th>
+        <th rowspan="2" style="width:80px">Группа товара</th>
+        <th rowspan="2" style="width:120px">Наименование</th>
+        <th rowspan="2" style="width:80px">Торговая марка</th>
+        <th rowspan="2" style="width:150px">Штрихкод</th>
+        <th rowspan="2" style="width:90px">Размер</th>
+        <th rowspan="2" style="width:70px">% уценки</th>
+        <th rowspan="2" style="width:70px">Цена (руб.)</th>
+        <th rowspan="2" style="width:80px">По данным бухучета, ед.</th>
+        <th rowspan="2" style="width:80px">Факти- ческое наличие, ед.</th>
+        <th colspan="2" style="width:160px">Расхождения</th>
+        <th rowspan="2" style="width:80px">Ячейки</th>
+    </tr>
+    <tr>
+        <th style="width:80px">Ед.</th>
+        <th style="width:80px">Руб.</th>
+    </tr>
+    {% for product in products %}
+    <tr>
+        <th>{{ forloop.counter }} </th>
+        <th>{{ product.vendor_code }} </th>
+        <th> </th>
+        <th>{{ product.title }} </th>
+        <th> </th>
+        <th>{{ product.barcode }} </th>
+        <th> </th>
+        <th> </th>
+        <th>{{ product.price }} </th>
+        <th>{{ product.uchet }} </th>
+        <th>{{ product.fact }} </th>
+        <th>{{ product.diff_amount }} </th>
+        <th>{{ product.diff_price }} </th>
+        <th>{{ product.zone }} </th>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th colspan="11">Итого:</th>
+        <th>{{ alls_diff_amount }} </th>
+        <th>{{ alls_diff_price }} </th>
+        <th> </th>
+    </tr>
+</table>
+</body>
+</html>

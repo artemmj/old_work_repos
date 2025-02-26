@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+}
+.tb th, .tb td {
+  padding: 5px; border: solid 1px #777;
+  font-family: DejaVuSans;
+}
+h1, h3 {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+
+<body>
+<h1 align="center">Отчет по расхождениям в ходе фискальной инвентаризации</h1>
+<table class="tb" width="70%">
+  <tr>
+    <th width="70px">Объект:</th>
+    <td>{{ project }}</td>
+  </tr>
+  <tr>
+    <th>Дата:</th>
+    <td>{{ curr_date }}</td>
+  </tr>
+  <tr>
+    <th>Зона:</th>
+    <td>{{ zone }}</td>
+  </tr>
+</table>
+<br>
+<table class="tb" style="width:300px;">
+  <tr>
+    <th rowspan="2" style="width:30px">№ п\п</th>
+    <th rowspan="2" style="width:80px">Расхождение</th>
+    <th rowspan="2">Штрих-код</th>
+    <th rowspan="2">Наименование</th>
+    <th colspan="3">Количество</th>
+  </tr>
+  <tr>
+    <th style="width:80px">Счетчик</th>
+    <th style="width:80px">Внутренний аудитор</th>
+    <th style="width:80px">Внешний аудитор</th>
+  </tr>
+  {% for item in scanned_products %}
+  <tr>
+    <th>{{ forloop.counter }} </th>
+    <th>{{ item.discrepancy }} </th>
+    <th>{{ item.barcode }} </th>
+    <th>{{ item.title }} </th>
+    <th>{{ item.cresult }} </th>
+    <th>{{ item.aresult }} </th>
+    <th>{{ item.aeresult }} </th>
+  </tr>
+  {% endfor %}
+  <tr>
+    <th colspan="7">
+      <p align="left">Комментарий менеджера инвантаризации:</p>
+      <br><br><br><br>
+      <p align="left">Подпись:</p>
+    </th>
+  </tr>
+  <tr>
+    <th colspan="7">
+      <p align="left">Комментарий аудитора:</p>
+      <br><br><br><br>
+      <p align="left">Подпись:</p>
+    </th>
+  </tr>
+</table>
+</body>
+</html>

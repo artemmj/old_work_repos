@@ -1,0 +1,7 @@
+FROM your-registry/templates/image/python:3-8-no-pip
+
+RUN pip install --no-cache-dir --upgrade pip setuptools==69.1.1 && pip install pipenv==2023.12.1
+COPY project/Pipfile* /
+
+RUN pipenv install --dev --deploy --system --ignore-pipfile
+

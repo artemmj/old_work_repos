@@ -1,0 +1,52 @@
+[isort]
+line_length=120
+skip=migrations
+multi_line_output=3
+include_trailing_comma = true
+
+
+[flake8]
+format = wemake
+show-source = False
+statistics = False
+ignore =
+    F401,
+    F405,
+    W503,
+    I005,
+    D100,
+    D101,
+    D102,
+    D103,
+    D104,
+    D105,
+    D106,
+    DAR101,
+    DAR201,
+    N400,
+    WPS111,
+    WPS201,
+    WPS202,
+    WPS305,
+    WPS300,
+    WPS306,
+    WPS348,
+    WPS215,
+    WPS226,
+    WPS407,
+    WPS412,
+    WPS615,
+
+max-line-length = 120
+
+per-file-ignores =
+    models.py: WPS115,
+    models/*.py:WPS115
+
+exclude =
+    .git,
+    __pycache__,
+    test,
+    migrations,
+    scripts,
+    logs,

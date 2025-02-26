@@ -1,0 +1,82 @@
+image: your-registry/templates/image/python:3-8-no-pip
+variables:
+  TAG: '$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA'
+  TEST_MIGRATION: "true"
+  TEST_PYTEST: "true"
+  TEST_FLAKE: "true"
+  CI_SKIP_TEST: "false"
+  PIP_CACHE: "true"
+
+include:
+  - project: tech/infrastructure/pipelines
+    ref: main
+    file: /backend/common.yaml
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master" 
+      variables:
+        DEBUG: "False"
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/PROD_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME == "dev"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/DEV_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME
+
+pip_cache:
+  before_script:
+    - python3 -m venv /opt/venv
+    - export PATH="/opt/venv/bin:${PATH}"
+    - apt update -y && apt install -y ttf-dejavu
+    - pip install --no-cache-dir --upgrade pip setuptools==69.1.1 && pip install pipenv==2023.12.1
+    - cp project/*.ttf /usr/share/fonts/
+    - pip freeze | wc -l
+
+MR:pip_cache:
+  before_script:
+    - |
+      if [ -e venv ]; then
+        echo "pip cache exists"; mv venv /opt/venv
+      else
+        echo "pip cache doesn't exist"; python3 -m venv /opt/venv
+      fi
+    - export PATH="/opt/venv/bin:${PATH}"
+    - apt update -y && apt install -y ttf-dejavu
+    - pip install --no-cache-dir --upgrade pip setuptools==69.1.1 && pip install pipenv==2023.12.1
+    - cp project/*.ttf /usr/share/fonts/
+    - pip freeze | wc -l
+
+test:pip-pytest-coverage:
+  script:
+    - pip install pytest-cov pytest-xdist
+    - (cd project; pytest --junitxml=report.xml --cov=. --cov-report term --cov-report xml:coverage.xml --cov-fail-under=0 -n 2)
+
+deploy_compose:
+  extends: .deploy_compose_template
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $DOCKERENV != null && $CI_COMMIT_REF_NAME == "dev"
+
+image upload:
+  stage: deploy
+  image: docker:dind
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $DOCKERENV != null && $CI_COMMIT_REF_NAME == "master"
+  services: ['docker:dind']
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    AWS_DEFAULT_REGION: "ru-central1" 
+    AWS_DEFAULT_OUTPUT: "json"
+  tags: [services]
+  script:
+    - apk add --no-cache aws-cli
+    - cat $DOCKERENV > .dockerenv && export $(grep -v '^#' .dockerenv | xargs)
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker save -o ${CI_PROJECT_NAME}.tar.gz $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - aws --endpoint-url=https://storage.yandexcloud.net s3 cp ${CI_PROJECT_NAME}.tar.gz s3://$BUCKET/ 

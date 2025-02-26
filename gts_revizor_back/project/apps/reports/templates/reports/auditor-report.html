@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb {
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb2 {
+  font-family: DejaVuSans;
+}
+.tb th, .tb td, .tb2 th, .tb2 td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Отчет аудитора</h1>
+<h3>Объект: {{ object }}</h3>
+<h3>Дата: {{ date }}</h3>
+<h3>Аудитор: {{ auditor }} (Внутренний аудитор)</h3>
+<table class="tb">
+    <thead>
+        <td rowspan="2" align="center">№ п/п</td>
+        <td rowspan="2" align="center">№ зоны</td>
+        <td colspan="5" align="center">Суммы по документу</td>
+    </thead>
+    <thead>
+        <td align="center">Аудитор</td>
+        <td align="center">Счетчик</td>
+        <td align="center">Расх. по кол-ву</td>
+        <td align="center">Расх.по ШК</td>
+        <td align="center">Замена</td>
+    </thead>
+    {% for zone in zones %}
+    <tr>
+        <td align="center">{{ forloop.counter }}</td>
+        <td align="center">{{ zone.zone_number }}</td>
+        <td align="center">{{ zone.auditor_task_result }}</td>
+        <td align="center">{{ zone.counter_scan_task_result }}</td>
+        <td align="center">{{ zone.quantity_discrepancy }}</td>
+        <td align="center">{{ zone.is_difference_between_scanned_products }}</td>
+        <td align="center">{{ zone.is_replace_specification }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<br>
+<dev>
+    <table class="tb2">
+        <thead>
+            <td colspan="2" style="width:400px;" align="center">Статистика аудитора:</td>
+        </thead>
+        <tr>
+            <td style="width:300px;">Кол-во зон, проверенных аудитором:</td>
+            <td style="width:100px;">{{ statistic.verified_zones_count }}</td>
+        </tr>   
+        <tr>
+            <td style="width:300px;">Общее кол-во отсканированных позиций:</td>
+            <td style="width:100px;">{{ statistic.scanned_products_count }}</td>
+        </tr>
+        <tr>
+            <td style="width:300px;">% отсканированных зон:</td>
+            <td style="width:100px;">{{ statistic.percentage_of_scanned_areas }} %</td>
+        </tr>
+        <tr>
+            <td style="width:300px;">Кол-во док-тов с заменой спецификации:</td>
+            <td style="width:100px;">{{ statistic.docs_with_specification_change_count }}</td>
+        </tr>
+    </table>
+</dev>
+</body>
+</html>

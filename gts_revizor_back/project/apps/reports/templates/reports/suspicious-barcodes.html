@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+    font-family: DejaVuSans;
+    src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb { 
+    border-collapse: collapse;
+    font-family: DejaVuSans;
+    width: 100%;
+    table-layout: fixed;
+}
+.tb th, .tb td {
+    border: solid 1px #777;
+    padding: 1;
+    font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+    font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Отчет по подозрительным ШК</h1>
+<table class="tb">
+    <tr>
+        <th style="width:50px">№ зоны</th>
+        <th style="width:130px">Код товара</th>
+        <th style="width:130px">Штрихкод</th>
+        <th style="width:260px">Наименование</th>
+        <th style="width:90px">Количество</th>
+    </tr>
+    {% for product in products %}
+    <tr>
+        <th>{{ product.zone }}</th>
+        <th>{{ product.vendor_code }}</th>
+        <th>{{ product.barcode }}</th>
+        <th>{{ product.title }}</th>
+        <th>{{ product.count }}</th>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

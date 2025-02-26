@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@font-face {
+  font-family: DejaVuSans;
+  src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+}
+.tb {
+  border-collapse: collapse;
+  font-family: DejaVuSans;
+  width: 100%;
+  table-layout: fixed;
+}
+.tb2 {
+  font-family: DejaVuSans;
+}
+.tb th, .tb td, .tb2 th, .tb2 td {
+  border: solid 1px #777;
+  padding: 1;
+  font-family: DejaVuSans;
+}
+h1, h3, h6, p {
+  font-family: DejaVuSans;
+}
+</style>
+</head>
+<body>
+<h1 align="center">Отчет аудитора</h1>
+<h3>Объект: {{ object }}</h3>
+<h3>Дата: {{ date }}</h3>
+<h3>Аудитор: {{ auditor }} (Внутренний аудитор УК)</h3>
+<table class="tb">
+    <thead>
+        <td rowspan="2" align="center">№ п/п</td>
+        <td rowspan="2" align="center">№ зоны</td>
+        <td colspan="4" align="center">Суммы по документу</td>
+    </thead>
+    <thead>
+        <td align="center">Кол-во скан</td>
+        <td align="center">Кол-во УК</td>
+        <td align="center">Кол-во Внутр. аудитор УК</td>
+        <td align="center">Расхождение</td>
+    </thead>
+
+    {% for zone in zones %}
+    <tr>
+        <td align="center">{{ forloop.counter }}</td>
+        <td align="center">{{ zone.zone_number }}</td>
+        <td align="center">{{ zone.counter_scan_task_result }}</td>
+        <td align="center">{{ zone.controller_tasks_result }}</td>
+        <td align="center">{{ zone.auditor_controller_tasks_result }}</td>
+        <td align="center">{{ zone.is_result_discrepancy }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<br>
+<dev>
+    <table class="tb2">
+        <thead>
+            <td colspan="2" style="width:400px;" align="center">Статистика аудитора:</td>
+        </thead>
+        <tr>
+            <td style="width:300px;">Кол-во зон, проверенных аудитором:</td>
+            <td style="width:100px;">{{ statistic.verified_zones_count }}</td>
+        </tr>   
+        <tr>
+            <td style="width:300px;">% отсканированных зон:</td>
+            <td style="width:100px;">{{ statistic.percentage_of_scanned_areas }} %</td>
+        </tr>
+        <tr>
+            <td style="width:300px;">Кол-во пересканированных зон:</td>
+            <td style="width:100px;">{{ statistic.rescanned_zones_count }}</td>
+        </tr>
+
+    </table>
+</dev>
+</body>
+</html>

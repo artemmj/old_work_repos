@@ -1,0 +1,128 @@
+stages:
+  - requirements
+  - test
+  - build
+  - deploy
+  - backup
+  - switch
+
+include:
+  - project: 'tech/ci_scripts/defaults'
+    ref: master
+    file: 
+      - '/backups/default.yml'
+      - '/dev_switching.yml'
+
+variables:
+  TAG: '$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA'
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_REF_NAME == "master"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/PROD_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME == "dev"
+      variables:
+        DOCKERENV: ${CI_PROJECT_DIR}.tmp/DEV_DOCKERENV
+    - if: $CI_COMMIT_REF_NAME
+
+requirements:
+  stage: requirements
+  tags: [services]
+  image: your-registry/templates/image/python:3-7-alpine
+  only:
+    changes:
+      - project/requirements/*
+      - docker/app/Dockerfile*
+  parallel:
+    matrix:
+      - REQ_STATE: ["dev","production"]
+  before_script:
+    - python3 -m venv /opt/venv
+    - export PATH="/opt/venv/bin:${PATH}"
+  script:
+    - (cd project; pip install --no-cache-dir -r requirements/${REQ_STATE}.txt)
+    - mv /opt/venv venv
+  cache:
+    key: "$CI_BUILD_REF_NAME-$REQ_STATE-requirements"
+    policy: push
+    paths: [venv]
+
+test:
+  stage: test
+  image: your-registry/templates/image/python:3-7-alpine
+  services: 
+    - name: your-registry/templates/image/postgres:12-4-alpine
+      alias: db
+    - name: your-registry/templates/image/redis:5-alpine
+      alias: redis
+  variables:
+    POSTGRES_HOST_AUTH_METHOD: trust
+    POSTGRES_HOST: db
+    POSTGRES_PORT: 5432
+  tags: [services]
+  before_script:
+    - mv venv /opt/venv
+    - export PATH="/opt/venv/bin:${PATH}"
+  script:
+    - cat $TEST_DOCKERENV > .env && export $(cat .env | xargs) && cat $TEST > project/.test.sh
+    - (cd project; bash .test.sh)
+    - (cd project; ./manage.py migrate)
+  cache:
+    key: "$CI_BUILD_REF_NAME-dev-requirements"
+    policy: pull
+    paths: [venv]
+
+build:
+  stage: build
+  tags: [services]
+  image: docker:dind
+  services: ['docker:dind']
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_NAME == "master"
+      variables:
+        REQ_STATE: "production"
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_NAME == "dev"
+      variables:
+        REQ_STATE: "dev"
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f docker/app/Dockerfile.build --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$TAG .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE:$TAG
+  cache:
+    key: "$CI_BUILD_REF_NAME-$REQ_STATE-requirements"
+    policy: pull
+    paths: [venv]
+
+deploy:
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $DOCKERENV != null
+  tags: [services]
+  before_script:
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - apk update && apk add openssh-client gettext
+    - eval $(ssh-agent -s)
+    - cat $SSH_CONFIG > ~/.ssh/config && cat $SSH_PRIVATE_KEY | tr -d '\r' | ssh-add -
+    - cat $DOCKERENV > .dockerenv && export $(grep -v '^#' .dockerenv | xargs)
+  script:
+    - envsubst < .docker-compose.yml.template > docker-compose.yml
+    - ssh -l work $SERVER "mkdir -p $CI_PROJECT_NAME/docker || true"
+    - scp -r docker/* work@$SERVER:~/$CI_PROJECT_NAME/docker/
+    - cat $DOCKERENV | ssh -l work $SERVER -T "cat > $CI_PROJECT_NAME/docker/.dockerenv"
+    - cat docker-compose.yml | ssh -l work $SERVER -T "cat > ~/$CI_PROJECT_NAME/docker-compose.yml"
+    - ssh -l work $SERVER "
+        docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+        cd ~/$CI_PROJECT_NAME &&
+        docker-compose pull &&
+        docker-compose down --remove-orphans &&
+        docker-compose up -d $SERVICES &&
+        docker-compose exec -T app ./manage.py migrate &&
+        yes | docker system prune -a"
+

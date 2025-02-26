@@ -1,0 +1,63 @@
+x-common-variables: &common-variables
+  POSTGRES_HOST_AUTH_METHOD: 'trust'
+  DJANGO_SETTINGS_MODULE: settings
+  CORS_ORIGIN_ALLOW_ALL: 'TRUE'
+  PYTHONUNBUFFERED: 0
+
+services:
+  db:
+    image: your-registry/templates/image/postgres:postgis-14-alpine
+    environment: *common-variables
+    restart: always
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres"],interval: 15s,timeout: 15s,retries: 5}
+
+  redis:
+    image: your-registry/templates/image/redis:7-alpine
+    environment: *common-variables
+    restart: always
+    volumes:
+      - ./volumes/redis/data:/data
+    healthcheck: {test: ["CMD", "redis-cli", "ping"],interval: 15s,timeout: 15s,retries: 5}
+
+  app: &app
+    image: localhost/app
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    environment: *common-variables
+    env_file: docker/.dockerenv
+    restart: always
+    ports: ["127.0.0.1:8000:80"]
+    volumes:
+      - ./project:/app
+      - ./volumes/media:/media
+      - ./volumes/static:/static
+    depends_on: [db,redis]
+    command: gunicorn --bind 0.0.0.0:8000
+      --timeout 600
+      --log-level debug
+      --access-logfile -
+      --access-logformat '%({X-Request-Id}i)s "%(r)s" %(s)s "%(a)s"'
+      --reload
+      --workers 4 apps.wsgi:application
+    healthcheck: {test: ["CMD-SHELL", "wget -O /dev/null http://localhost:8000/api/v1/health_check || exit 1"],interval: 15s,timeout: 15s,retries: 5}
+
+  celery:
+    <<: *app
+    depends_on: [db,redis]
+    ports: []
+    command: celery -A apps worker -l info -B -c 4
+    healthcheck: {test: ["CMD-SHELL", "celery -A apps inspect ping"],interval: 15s,timeout: 15s,retries: 5}
+
+  nginx:
+    image: your-registry/templates/image/nginx:1-25-alpine
+    restart: always
+    volumes:
+      - ./docker/nginx/:/etc/nginx/conf.d
+      - ./volumes/static:/var/www/static
+      - ./volumes/media:/var/www/media
+    depends_on: [app]
+    ports: ["127.0.0.1:80:80"]
+    healthcheck: {test: ["CMD-SHELL", "wget -O /dev/null http://localhost/basic_status || exit 1"],interval: 15s,timeout: 15s,retries: 5}
